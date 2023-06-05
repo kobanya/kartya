@@ -13,7 +13,7 @@ class Kartya:
 class Pakli:
     def __init__(self):
         self.kartyak = []
-        for szin in ["♠", "♣", "♦", "♥"]:
+        for szin, szin_kod in [("♠", "black"), ("♣", "black"), ("♦", "red"), ("♥", "red")]:
             for ertek in ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]:
                 self.kartyak.append(Kartya(szin, ertek))
 
@@ -38,41 +38,52 @@ def keveres_button_click(pakli):
     except ValueError as err:
         messagebox.showerror("Hiba", str(err))
 
-def huzas_button_click(pakli, canvas):
+def huzas_button_click(pakli, canvas, drawn_cards):
     try:
         kartya = pakli.huzas()
-       # messagebox.showinfo("Huzas", f"Huzott kartya: {kartya}")
-        draw_card(canvas, kartya)
+        #messagebox.showinfo("Huzas", f"Huzott kartya: {kartya}")
+        draw_card(canvas, kartya, drawn_cards)
     except ValueError as err:
         messagebox.showerror("Hiba", str(err))
 
-def draw_card(canvas, kartya):
-    canvas.delete("all")
+def draw_card(canvas, kartya, drawn_cards):
+    x = 20 + (70 * (len(drawn_cards) % 26))  # X pozíció a kártya elhelyezéséhez
+    y = 20 + (170 * (len(drawn_cards) // 26))  # Y pozíció a kártya elhelyezéséhez
 
     # Kártya háttére
-    canvas.create_rectangle(20, 20, 120, 180, fill="white")
-    canvas.create_rectangle(25, 25, 115, 175, fill="light gray")
+    canvas.create_rectangle(x, y, x + 100, y + 160, fill="white")
+    canvas.create_rectangle(x + 5, y + 5, x + 95, y + 155, fill="light gray")
 
     # Szín és érték
-    canvas.create_text(70, 70, text=kartya.szin, font=("Arial", 48), fill="black")
-    canvas.create_text(70, 150, text=kartya.ertek, font=("Arial", 13), fill="black")
+    szin = kartya.szin
+    szin_szoveg = ""
+    if szin == "♠" or szin == "♣":
+        szin_szoveg = "black"
+    else:
+        szin_szoveg = "red"
+
+    canvas.create_text(x + 50, y + 60, text=szin, font=("Arial", 36), fill=szin_szoveg)
+    canvas.create_text(x + 50, y + 110, text=kartya.ertek, font=("Arial", 13), fill=szin_szoveg)
+
+    drawn_cards.append(kartya)  # Kártya hozzáadása a húzott kártyákhoz
 
 def main():
     pakli = Pakli()
+    drawn_cards = []  # Húzott kártyák listája
 
     root = tk.Tk()
     root.title("Kartyajatek")
 
-    canvas = tk.Canvas(root, width=2400, height=400)
+    canvas = tk.Canvas(root, width=2300, height=600)
     canvas.pack()
 
     button_frame = tk.Frame(root)
     button_frame.pack(pady=20)
 
     keveres_button = tk.Button(button_frame, text="Keveres", command=lambda: keveres_button_click(pakli))
-    keveres_button.pack(side="left", padx=150)
+    keveres_button.pack(side="left", padx=200)
 
-    huzas_button = tk.Button(button_frame, text="Huzas", command=lambda: huzas_button_click(pakli, canvas))
+    huzas_button = tk.Button(button_frame, text="Huzas", command=lambda: huzas_button_click(pakli, canvas, drawn_cards))
     huzas_button.pack(side="left")
 
     root.mainloop()
