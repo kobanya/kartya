@@ -115,7 +115,7 @@ def main():
     root = tk.Tk()
     root.title("Kártyajáték")
 
-    canvas = tk.Canvas(root, width=2400, height=1000)
+    canvas = tk.Canvas(root, width=2500, height=1000)
     canvas.pack()
 
     deck_frame = tk.Frame(root)
