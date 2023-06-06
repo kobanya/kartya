@@ -8,7 +8,7 @@ CARD_WIDTH = 100  # Kártya szélessége
 CARD_HEIGHT = 160  # Kártya magassága
 CARD_OVERLAP = 0  # Kártyák átfedése
 CARDS_PER_ROW = 9  # Kártyák száma soronként
-NUM_ROWS = 11 # Sorok száma
+NUM_ROWS = 6 # Sorok száma
 
 class Kartya:
     def __init__(self, szin, ertek):
@@ -64,6 +64,13 @@ def draw_deck(canvas, pakli, drawn_cards):
             draw_card(canvas, kartya, x, y, False)
         x += CARD_WIDTH + 10
 
+        # Kihúzott lapok területének kerettel történő körberajzolása
+        start_x = 1490
+        start_y = 20
+        end_x = start_x + (CARD_WIDTH - CARD_OVERLAP) * CARDS_PER_ROW
+        end_y = start_y + (CARD_HEIGHT - CARD_OVERLAP) * NUM_ROWS
+        canvas.create_rectangle(start_x-5, start_y-15, end_x+20, end_y+20, outline="grey", width=5)
+
     # Kihúzott lapok rajzolása
     start_x = 1500
     start_y = 20
@@ -115,7 +122,7 @@ def main():
     root = tk.Tk()
     root.title("Kártyajáték")
 
-    canvas = tk.Canvas(root, width=2500, height=1000)
+    canvas = tk.Canvas(root, width=2500, height=1100)
     canvas.pack()
 
     deck_frame = tk.Frame(root)
