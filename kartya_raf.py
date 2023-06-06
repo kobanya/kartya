@@ -2,6 +2,9 @@ import random
 import tkinter as tk
 from tkinter import messagebox
 
+CARD_WIDTH = 100
+CARD_HEIGHT = 160
+
 class Kartya:
     def __init__(self, szin, ertek):
         self.szin = szin
@@ -13,7 +16,8 @@ class Kartya:
 class Pakli:
     def __init__(self):
         self.kartyak = []
-        for szin, szin_kod in [("♠", "black"), ("♣", "black"), ("♦", "red"), ("♥", "red")]:
+
+        for szin in ["♠", "♣", "♦", "♥"]:
             for ertek in ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]:
                 self.kartyak.append(Kartya(szin, ertek))
 
@@ -22,7 +26,7 @@ class Pakli:
 
     def keveres(self):
         if len(self.kartyak) == 52:
-            random.shuffle(self.kartyak)
+            random.SystemRandom().shuffle(self.kartyak)
         else:
             raise ValueError("Megkezdett pakli nem keverheto")
 
@@ -31,60 +35,87 @@ class Pakli:
             raise ValueError("Nincs tobb kartya a pakliban")
         return self.kartyak.pop()
 
-def keveres_button_click(pakli):
+def keveres_button_click(pakli, canvas, drawn_cards):
     try:
         pakli.keveres()
-        messagebox.showinfo("Keveres", "A pakli keverve.")
+        drawn_cards.clear()
+        draw_deck(canvas, pakli, drawn_cards)
     except ValueError as err:
         messagebox.showerror("Hiba", str(err))
+
+def draw_deck(canvas, pakli, drawn_cards):
+    canvas.delete("deck")
+    x = 20
+    y = 20
+    for i, kartya in enumerate(pakli.kartyak):
+        if i % 13 == 0 and i != 0:
+            x = 20
+            y += CARD_HEIGHT + 10
+        if kartya not in drawn_cards:
+            draw_card(canvas, kartya, x, y, drawn_cards, False)
+        x += CARD_WIDTH + 10
+
 
 def huzas_button_click(pakli, canvas, drawn_cards):
     try:
         kartya = pakli.huzas()
         #messagebox.showinfo("Huzas", f"Huzott kartya: {kartya}")
-        draw_card(canvas, kartya, drawn_cards)
+        drawn_cards.clear()
+        remove_card(canvas)
+        draw_deck(canvas, pakli, drawn_cards)
+        if len(drawn_cards) > 26:
+            drawn_cards.pop(0)
     except ValueError as err:
         messagebox.showerror("Hiba", str(err))
 
-def draw_card(canvas, kartya, drawn_cards):
-    x = 20 + (70 * (len(drawn_cards) % 26))  # X pozíció a kártya elhelyezéséhez
-    y = 20 + (170 * (len(drawn_cards) // 26))  # Y pozíció a kártya elhelyezéséhez
+def reset_game(canvas, pakli, drawn_cards):
+        pakli.__init__()  # Inicializálja újra a pakli objektumot
+        drawn_cards.clear()
+        remove_card(canvas)
+        draw_deck(canvas, pakli, drawn_cards)
 
+
+def remove_card(canvas):
+    canvas.delete("card")
+
+def draw_card(canvas, kartya, x, y, drawn_cards, new_card=True):
     # Kártya háttére
-    canvas.create_rectangle(x, y, x + 100, y + 160, fill="white")
-    canvas.create_rectangle(x + 5, y + 5, x + 95, y + 155, fill="light gray")
+    canvas.create_rectangle(x, y, x + CARD_WIDTH, y + CARD_HEIGHT, fill="white", tags="card")
+    canvas.create_rectangle(x + 5, y + 5, x + CARD_WIDTH - 5, y + CARD_HEIGHT - 5, fill="light gray", tags="card")
 
     # Szín és érték
     szin = kartya.szin
-    szin_szoveg = ""
-    if szin == "♠" or szin == "♣":
-        szin_szoveg = "black"
-    else:
-        szin_szoveg = "red"
+    szin_szoveg = "black" if szin == "♠" or szin == "♣" else "red"
 
-    canvas.create_text(x + 50, y + 60, text=szin, font=("Arial", 36), fill=szin_szoveg)
-    canvas.create_text(x + 50, y + 110, text=kartya.ertek, font=("Arial", 13), fill=szin_szoveg)
+    canvas.create_text(x + (CARD_WIDTH // 2), y + (CARD_HEIGHT // 2) - 40, text=szin, font=("Arial", 48), fill=szin_szoveg, tags="card")
+    canvas.create_text(x + (CARD_WIDTH // 2), y + (CARD_HEIGHT // 2) + 30, text=kartya.ertek, font=("Arial", 13), fill=szin_szoveg, tags="card")
 
-    drawn_cards.append(kartya)  # Kártya hozzáadása a húzott kártyákhoz
+    if new_card:
+        drawn_cards.append(kartya)
 
 def main():
     pakli = Pakli()
-    drawn_cards = []  # Húzott kártyák listája
+    drawn_cards = []
 
     root = tk.Tk()
-    root.title("Kartyajatek")
+    root.title("Kártyajáték")
 
-    canvas = tk.Canvas(root, width=2300, height=600)
+    canvas = tk.Canvas(root, width=2000, height=1000)
     canvas.pack()
 
-    button_frame = tk.Frame(root)
-    button_frame.pack(pady=20)
+    deck_frame = tk.Frame(root)
+    deck_frame.pack(pady=20)
 
-    keveres_button = tk.Button(button_frame, text="Keveres", command=lambda: keveres_button_click(pakli))
-    keveres_button.pack(side="left", padx=200)
+    keveres_button = tk.Button(deck_frame, text="Keverés", command=lambda: keveres_button_click(pakli, canvas, drawn_cards))
+    keveres_button.pack(side="left", padx=10)
 
-    huzas_button = tk.Button(button_frame, text="Huzas", command=lambda: huzas_button_click(pakli, canvas, drawn_cards))
-    huzas_button.pack(side="left")
+    huzas_button = tk.Button(deck_frame, text="Húzás", command=lambda: huzas_button_click(pakli, canvas, drawn_cards))
+    huzas_button.pack(side="left", padx=10)
+
+    uj_jatek_button = tk.Button(deck_frame, text="ÚJ JÁTÉK", command=lambda: reset_game(canvas, pakli, drawn_cards))
+    uj_jatek_button.pack(side="left", padx=10)
+
+    draw_deck(canvas, pakli, drawn_cards)
 
     root.mainloop()
 
