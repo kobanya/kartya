@@ -33,7 +33,9 @@ class Pakli:
     def huzas(self):
         if len(self.kartyak) == 0:
             raise ValueError("Nincs tobb kartya a pakliban")
-        return self.kartyak.pop()
+        index = random.randint(0, len(self.kartyak) - 1)  # Véletlenszerű index választása
+        return self.kartyak.pop(index)  # Kártya kiválasztása és eltávolítása a pakliból
+
 
 def keveres_button_click(pakli, canvas, drawn_cards):
     try:
