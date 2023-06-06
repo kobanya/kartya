@@ -33,9 +33,8 @@ class Pakli:
     def huzas(self):
         if len(self.kartyak) == 0:
             raise ValueError("Nincs tobb kartya a pakliban")
-        index = random.randint(0, len(self.kartyak) - 1)  # Véletlenszerű index választása
-        return self.kartyak.pop(index)  # Kártya kiválasztása és eltávolítása a pakliból
-
+        index = random.randint(0, len(self.kartyak) - 1)
+        return self.kartyak.pop(index)
 
 def keveres_button_click(pakli, canvas, drawn_cards):
     try:
@@ -57,41 +56,34 @@ def draw_deck(canvas, pakli, drawn_cards):
             draw_card(canvas, kartya, x, y, drawn_cards, False)
         x += CARD_WIDTH + 10
 
-
 def huzas_button_click(pakli, canvas, drawn_cards):
     try:
         kartya = pakli.huzas()
-        #messagebox.showinfo("Huzas", f"Huzott kartya: {kartya}")
         drawn_cards.clear()
         remove_card(canvas)
         draw_deck(canvas, pakli, drawn_cards)
+        draw_card(canvas, kartya, 1700, 20, drawn_cards)
         if len(drawn_cards) > 26:
             drawn_cards.pop(0)
     except ValueError as err:
         messagebox.showerror("Hiba", str(err))
 
 def reset_game(canvas, pakli, drawn_cards):
-        pakli.__init__()  # Inicializálja újra a pakli objektumot
-        drawn_cards.clear()
-        remove_card(canvas)
-        draw_deck(canvas, pakli, drawn_cards)
-
+    pakli.__init__()
+    drawn_cards.clear()
+    remove_card(canvas)
+    draw_deck(canvas, pakli, drawn_cards)
 
 def remove_card(canvas):
     canvas.delete("card")
 
 def draw_card(canvas, kartya, x, y, drawn_cards, new_card=True):
-    # Kártya háttére
     canvas.create_rectangle(x, y, x + CARD_WIDTH, y + CARD_HEIGHT, fill="white", tags="card")
     canvas.create_rectangle(x + 5, y + 5, x + CARD_WIDTH - 5, y + CARD_HEIGHT - 5, fill="light gray", tags="card")
-
-    # Szín és érték
     szin = kartya.szin
     szin_szoveg = "black" if szin == "♠" or szin == "♣" else "red"
-
     canvas.create_text(x + (CARD_WIDTH // 2), y + (CARD_HEIGHT // 2) - 40, text=szin, font=("Arial", 48), fill=szin_szoveg, tags="card")
     canvas.create_text(x + (CARD_WIDTH // 2), y + (CARD_HEIGHT // 2) + 30, text=kartya.ertek, font=("Arial", 13), fill=szin_szoveg, tags="card")
-
     if new_card:
         drawn_cards.append(kartya)
 
