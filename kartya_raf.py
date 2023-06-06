@@ -2,8 +2,13 @@ import random
 import tkinter as tk
 from tkinter import messagebox
 
-CARD_WIDTH = 100
-CARD_HEIGHT = 160
+
+
+CARD_WIDTH = 100  # Kártya szélessége
+CARD_HEIGHT = 160  # Kártya magassága
+CARD_OVERLAP = 0  # Kártyák átfedése
+CARDS_PER_ROW = 9  # Kártyák száma soronként
+NUM_ROWS = 11 # Sorok száma
 
 class Kartya:
     def __init__(self, szin, ertek):
@@ -12,6 +17,8 @@ class Kartya:
 
     def __str__(self):
         return f"{self.szin}{self.ertek}"
+
+
 
 class Pakli:
     def __init__(self):
@@ -44,6 +51,7 @@ def keveres_button_click(pakli, canvas, drawn_cards):
     except ValueError as err:
         messagebox.showerror("Hiba", str(err))
 
+
 def draw_deck(canvas, pakli, drawn_cards):
     canvas.delete("deck")
     x = 20
@@ -53,18 +61,31 @@ def draw_deck(canvas, pakli, drawn_cards):
             x = 20
             y += CARD_HEIGHT + 10
         if kartya not in drawn_cards:
-            draw_card(canvas, kartya, x, y, drawn_cards, False)
+            draw_card(canvas, kartya, x, y, False)
         x += CARD_WIDTH + 10
+
+    # Kihúzott lapok rajzolása
+    start_x = 1500
+    start_y = 20
+    for i, kartya in enumerate(drawn_cards):
+        row = i // CARDS_PER_ROW
+        col = i % CARDS_PER_ROW
+        x = start_x + col * (CARD_WIDTH - CARD_OVERLAP)
+        y = start_y + row * (CARD_HEIGHT - CARD_OVERLAP)
+        if row >= NUM_ROWS:
+            x += (CARD_WIDTH - CARD_OVERLAP) * CARDS_PER_ROW
+            y += ((row // NUM_ROWS) * (CARD_HEIGHT - CARD_OVERLAP))
+        draw_card(canvas, kartya, x, y, True)
+
 
 def huzas_button_click(pakli, canvas, drawn_cards):
     try:
         kartya = pakli.huzas()
-        drawn_cards.clear()
+        drawn_cards.append(kartya)
+        if len(drawn_cards) > 52:
+            drawn_cards.pop(0)
         remove_card(canvas)
         draw_deck(canvas, pakli, drawn_cards)
-        draw_card(canvas, kartya, 1700, 20, drawn_cards)
-        if len(drawn_cards) > 26:
-            drawn_cards.pop(0)
     except ValueError as err:
         messagebox.showerror("Hiba", str(err))
 
@@ -77,15 +98,15 @@ def reset_game(canvas, pakli, drawn_cards):
 def remove_card(canvas):
     canvas.delete("card")
 
-def draw_card(canvas, kartya, x, y, drawn_cards, new_card=True):
+def draw_card(canvas, kartya, x, y, new_card=True):
     canvas.create_rectangle(x, y, x + CARD_WIDTH, y + CARD_HEIGHT, fill="white", tags="card")
     canvas.create_rectangle(x + 5, y + 5, x + CARD_WIDTH - 5, y + CARD_HEIGHT - 5, fill="light gray", tags="card")
+
     szin = kartya.szin
     szin_szoveg = "black" if szin == "♠" or szin == "♣" else "red"
+
     canvas.create_text(x + (CARD_WIDTH // 2), y + (CARD_HEIGHT // 2) - 40, text=szin, font=("Arial", 48), fill=szin_szoveg, tags="card")
     canvas.create_text(x + (CARD_WIDTH // 2), y + (CARD_HEIGHT // 2) + 30, text=kartya.ertek, font=("Arial", 13), fill=szin_szoveg, tags="card")
-    if new_card:
-        drawn_cards.append(kartya)
 
 def main():
     pakli = Pakli()
@@ -94,7 +115,7 @@ def main():
     root = tk.Tk()
     root.title("Kártyajáték")
 
-    canvas = tk.Canvas(root, width=2000, height=1000)
+    canvas = tk.Canvas(root, width=2400, height=1000)
     canvas.pack()
 
     deck_frame = tk.Frame(root)
@@ -110,6 +131,7 @@ def main():
     uj_jatek_button.pack(side="left", padx=10)
 
     draw_deck(canvas, pakli, drawn_cards)
+
 
     root.mainloop()
 
